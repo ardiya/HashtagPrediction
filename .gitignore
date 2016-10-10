@@ -1,3 +1,9 @@
+# My ignore list
+.ipynb_checkp../
+.ipynb_checkpoints/
+*.ipynb
+*.tfrecords
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
