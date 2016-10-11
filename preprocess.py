@@ -130,12 +130,15 @@ def create_records(harrison_data):
 		print('Writing to', train_file)
 		writer = tf.python_io.TFRecordWriter(train_file)
 
+		#Shuffle DataFrame
+		harrison_data = harrison_data.reindex(np.random.permutation(harrison_data.index))
+		it = 0
 		for idx, row in harrison_data.iterrows():
+			it += 1
 			filename = row['image']
 			labels = row['tags']
 			image_buffer, height, width = _process_image(filename)
-			print("\rProcessing Image #",idx,"-", filename,
-				  " width:", width, "height:", height, end="")
+			print("Processing Image #",it,"-", filename)
 			
 			example = tf.train.Example(features=tf.train.Features(feature={
 						'height':_int64_feature(height),
