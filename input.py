@@ -25,7 +25,6 @@ def read_and_decode(filename_queue):
 	image = tf.image.decode_jpeg(features['image_raw'], channels=3)
 	image.set_shape([inception.inception_v3.default_image_size,
 		inception.inception_v3.default_image_size, 3])
-	print("- Image:", image.get_shape())
 
 	#Using preprocessing from slim
 	processed_images = inception_preprocessing.preprocess_image(image,
