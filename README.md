@@ -12,6 +12,21 @@ Hashtag Prediction uses a number of open source projects to work properly:
 
 ### Installation
 
+Installing latest version of TF-slim
+
+As of 8/28/16, the latest stable release of TF is r0.10, which contains most of TF-Slim but not some later additions. To obtain the latest version, you must install the most recent nightly build of TensorFlow. You can find the latest nightly binaries at [TensorFlow Installation] in the section that reads "People who are a little more adventurous can also try our nightly binaries". Copy the link address that corresponds to the appropriate machine architecture and python version, and pip install it. For example:
+
+```sh
+export TF_BINARY_URL=https://ci.tensorflow.org/view/Nightly/job/nightly-matrix-cpu/TF_BUILD_CONTAINER_TYPE=CPU,TF_BUILD_IS_OPT=OPT,TF_BUILD_IS_PIP=PIP,TF_BUILD_PYTHON_VERSION=PYTHON2,label=cpu-slave/lastSuccessfulBuild/artifact/pip_test/whl/tensorflow-0.10.0rc0-cp27-none-linux_x86_64.whl
+sudo pip install --upgrade $TF_BINARY_URL
+```
+
+To test this has worked, execute the following command; it should run without raising any errors.
+
+```
+python -c "import tensorflow.contrib.slim as slim; eval = slim.evaluation.evaluate_once"
+```
+
 Install the dependencies then execute these commands.
 
 ```sh
@@ -48,6 +63,7 @@ MIT
 [HARRISON Benchmark Dataset]: <https://github.com/minstone/HARRISON-Dataset>
 [RecSys=DAE]:<https://github.com/ardiya/RecSys-DAE-tensorflow>
 [Tensorflow]:<https://tensorflow.org>
+[TensorFlow Installation]:<https://github.com/tensorflow/tensorflow#installation>
 [Slim]:<https://github.com/tensorflow/models/blob/master/inception/inception/slim/README.md>
 [Pandas]:<pandas.pydata.org/>
 [PlDb]: <https://github.com/ardiya/HashtagPrediction/README.md>
