@@ -14,6 +14,10 @@ flags.DEFINE_string('train_dir', '/home/ardiya/HashtagPrediction',
 flags.DEFINE_string('train_file', 'harrison.tfrecords',
 					'File of the training data')
 
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = False
+config.gpu_options.per_process_gpu_memory_fraction = 0.1
+
 def multi_encode(ar, num_classes):
 	"""
 	Return the multiclass-label of hashtags labels into array with length of num_classes,
@@ -87,10 +91,12 @@ def _process_image(filename):
 	height: integer, image height in pixels.
 	width: integer, image width in pixels.
 	"""
-	image_data = tf.gfile.FastGFile(filename, 'r').read()
+	with open(filename, 'rb') as f:
+ 		image_data = f.read()
+
 	g = tf.Graph()
 	with g.as_default():
-		sess = tf.Session()
+		sess = tf.Session(config=config)
 		img_encoded = tf.placeholder(dtype=tf.string)
 		if _is_png(filename):
 			t_image = tf.image.decode_png(img_encoded, channels=3)
@@ -101,7 +107,7 @@ def _process_image(filename):
 		encoded_image = tf.image.encode_jpeg(resized_image, format='rgb', quality=100)
 		
 		sess.run(tf.initialize_all_variables())
-		# img = sess.run(resized_image, feed_dict={img_encoded: image_data})
+		img = sess.run(resized_image, feed_dict={img_encoded: image_data})
 		# print("img shape:", img.shape)
 		# plt.imshow(img)
 		# plt.show()
@@ -120,7 +126,7 @@ def _process_image(filename):
 def create_records(harrison_data):
 	tf.reset_default_graph()
 	
-	with tf.Session() as sess:
+	with tf.Session(config=config) as sess:
 		init_op = tf.initialize_all_variables()
 		sess.run(init_op)
 		coord = tf.train.Coordinator()

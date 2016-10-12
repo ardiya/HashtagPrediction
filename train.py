@@ -24,7 +24,6 @@ if __name__ == '__main__':
 	with tf.Graph().as_default():
 		tf.logging.set_verbosity(tf.logging.INFO)
 
-		print("Building Network")
 		img_placeholder = tf.placeholder(tf.float32, shape=(None, 299, 299, 3))
 		lbl_placeholder = tf.placeholder(tf.float32, shape=(None, 1000))
 
