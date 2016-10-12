@@ -43,6 +43,7 @@ Readmes, how to use them can be found here:
 
 ### Todos
 
+ - Split dataset into Train, Validation, Test
  - Provide MAP measurement
  - Compare with benchmark
  - Implement Android Application
