@@ -37,6 +37,7 @@ Readmes, how to use them can be found here:
 
 ### Done
 
+ - Split dataset into 52373 train data and 5000 test data
  - Convert images into TFRecords and read the records
  - Use Inception V3
  - Load the trained weight
@@ -44,7 +45,6 @@ Readmes, how to use them can be found here:
 
 ### Todos
 
- - Split dataset into Train, Validation, Test
  - Compare with benchmark
  - Implement Android Application
 

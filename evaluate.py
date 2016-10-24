@@ -1,3 +1,4 @@
+import os
 import input
 import model
 import tensorflow as tf
@@ -6,20 +7,22 @@ slim = tf.contrib.slim
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_epochs', 1000, 'Number of epochs to run trainer.')
-flags.DEFINE_integer('batch_size', 32, 'Batch size.')
+flags.DEFINE_integer('batch_size', 100, 'Batch size.')
 flags.DEFINE_string('harrison_dir', '/home/ardiya/HARRISON',
 					'Directory containing Benchmark Dataset(img_placeholder, data_list, and tag_list.')
 flags.DEFINE_string('train_dir', '/home/ardiya/HashtagPrediction',
 					'Directory with the training data.')
-flags.DEFINE_string('train_file', 'harrison.tfrecords',
-					'File of the training data')
+flags.DEFINE_string('train_file', 'harrison_train.tfrecords',
+					'Filename of the training data')
+flags.DEFINE_string('test_file', 'harrison_test.tfrecords',
+					'Filename of the test data')
 
 if __name__ == '__main__':
 	with tf.Graph().as_default():
 		tf.logging.set_verbosity(tf.logging.INFO)
 		
-		batch_x, batch_y, X, y = input.inputs()
+		batch_x, batch_y = input.inputs(
+			filename=os.path.join(FLAGS.train_dir, FLAGS.test_file))
 		logits = model.inference(batch_x, is_training=False)
 
 		batch_y = tf.cast(batch_y, tf.int64)
@@ -38,6 +41,7 @@ if __name__ == '__main__':
 			master='',
 			checkpoint_path=checkpoint_path,
 			logdir=logdir,
+			num_evals=5000//FLAGS.batch_size,
 			eval_op=list(names_to_updates.values()),
 			final_op=list(names_to_values.values()))
 

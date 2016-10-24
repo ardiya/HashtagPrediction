@@ -36,10 +36,9 @@ def read_and_decode(filename_queue):
 
 	return processed_images, label
 
-def inputs():
-	filename=os.path.join(FLAGS.train_dir, FLAGS.train_file)
+def inputs(filename, num_epochs=1000):
 	filename_queue = tf.train.string_input_producer([filename],
-			   num_epochs=FLAGS.num_epochs)
+			   num_epochs=num_epochs)
 	image, labels = read_and_decode(filename_queue)
 	batch_image, batch_labels = tf.train.batch(
 		[image, labels], batch_size=FLAGS.batch_size)
@@ -48,4 +47,4 @@ def inputs():
 	#     num_threads=4,
 	#     capacity=1000 + 3 * FLAGS.batch_size,
 	#     min_after_dequeue=1000)
-	return batch_image, batch_labels, image, labels
+	return batch_image, batch_labels

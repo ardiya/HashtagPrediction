@@ -11,12 +11,10 @@ flags.DEFINE_string('harrison_dir', '/home/ardiya/HARRISON',
 					'Directory containing Benchmark Dataset(images, data_list, and tag_list.')
 flags.DEFINE_string('train_dir', '/home/ardiya/HashtagPrediction',
 					'Directory with the training data.')
-flags.DEFINE_string('train_file', 'harrison.tfrecords',
-					'File of the training data')
-
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction = 0.1
+flags.DEFINE_string('train_file', 'harrison_train.tfrecords',
+					'Filename of the training data')
+flags.DEFINE_string('test_file', 'harrison_test.tfrecords',
+					'Filename of the test data')
 
 def multi_encode(ar, num_classes):
 	"""
@@ -74,7 +72,13 @@ def read_image_dir_and_tags():
 							for tags in harrison_data["tags"].values]
 
 	harrison_data["image"] = [os.path.join(FLAGS.harrison_dir, path) for path in harrison_data.image]
-	return harrison_data
+
+	#Shuffle DataFrame
+	harrison_data = harrison_data.reindex(np.random.permutation(harrison_data.index))
+	#Split to train and 
+	harrison_test = harrison_data.sample(n=5000)
+	harrison_train = harrison_data.loc[~harrison_data.index.isin(harrison_test.index)]
+	return harrison_train, harrison_test
 
 def _is_png(filename):
 	return '.png' in filename
@@ -96,7 +100,7 @@ def _process_image(filename):
 
 	g = tf.Graph()
 	with g.as_default():
-		sess = tf.Session(config=config)
+		sess = tf.Session()
 		img_encoded = tf.placeholder(dtype=tf.string)
 		if _is_png(filename):
 			t_image = tf.image.decode_png(img_encoded, channels=3)
@@ -123,21 +127,17 @@ def _process_image(filename):
 		
 		return img, height, width
 
-def create_records(harrison_data):
+def create_records(harrison_data, filename):
 	tf.reset_default_graph()
 	
-	with tf.Session(config=config) as sess:
+	with tf.Session() as sess:
 		init_op = tf.initialize_all_variables()
 		sess.run(init_op)
 		coord = tf.train.Coordinator()
 		threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 		
-		train_file = os.path.join(FLAGS.train_dir, FLAGS.train_file)
-		print('Writing to', train_file)
-		writer = tf.python_io.TFRecordWriter(train_file)
-
-		#Shuffle DataFrame
-		harrison_data = harrison_data.reindex(np.random.permutation(harrison_data.index))
+		writer = tf.python_io.TFRecordWriter(filename)
+		
 		it = 0
 		for idx, row in harrison_data.iterrows():
 			it += 1
@@ -160,7 +160,12 @@ def create_records(harrison_data):
 		coord.join(threads)
 
 if __name__ == '__main__':
-	harrison_data = read_image_dir_and_tags()
-	create_records(harrison_data)
+	np.random.seed(0)
+	harrison_train, harrison_test = read_image_dir_and_tags()
+	print("Harrison Train:", harrison_train.shape)
+	print("Harrison Test:", harrison_test.shape)
+	print("========================")
+	create_records(harrison_train, os.path.join(FLAGS.train_dir, FLAGS.train_file))
+	create_records(harrison_test, os.path.join(FLAGS.train_dir, FLAGS.test_file))
 
 
