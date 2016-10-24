@@ -40,11 +40,11 @@ Readmes, how to use them can be found here:
  - Convert images into TFRecords and read the records
  - Use Inception V3
  - Load the trained weight
+ - Provide MAP measurement
 
 ### Todos
 
  - Split dataset into Train, Validation, Test
- - Provide MAP measurement
  - Compare with benchmark
  - Implement Android Application
 
@@ -53,8 +53,6 @@ License
 
 MIT
 
-
-**Free Software, Hell Yeah!**
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 [HARRISON Benchmark Dataset]: <https://github.com/minstone/HARRISON-Dataset>

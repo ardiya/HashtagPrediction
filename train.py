@@ -24,9 +24,6 @@ if __name__ == '__main__':
 	with tf.Graph().as_default():
 		tf.logging.set_verbosity(tf.logging.INFO)
 
-		img_placeholder = tf.placeholder(tf.float32, shape=(None, 299, 299, 3))
-		lbl_placeholder = tf.placeholder(tf.float32, shape=(None, 1000))
-
 		batch_x, batch_y, X, y = input.inputs()
 		logits = model.inference(batch_x)
 		losses = model.loss(logits, batch_y)
@@ -44,4 +41,5 @@ if __name__ == '__main__':
 						train_op,
 						logdir=os.path.join(FLAGS.train_dir, 'train.log'),
 						init_fn=init_fn,
-						number_of_steps=FLAGS.num_epochs)
+						number_of_steps=FLAGS.num_epochs,
+						save_summaries_secs=10)
