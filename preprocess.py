@@ -16,6 +16,9 @@ flags.DEFINE_string('train_file', 'harrison_train.tfrecords',
 flags.DEFINE_string('test_file', 'harrison_test.tfrecords',
 					'Filename of the test data')
 
+config = tf.ConfigProto(log_device_placement=False)
+config.gpu_options.allow_growth = True
+
 def multi_encode(ar, num_classes):
 	"""
 	Return the multiclass-label of hashtags labels into array with length of num_classes,
@@ -41,6 +44,17 @@ def _bytes_feature(value):
 	"""
 	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
+def get_tag_mapping():
+	# Create Dictionary mapping bidirection name and id
+	vocab_index = pd.read_csv(os.path.join(FLAGS.harrison_dir, "vocab_index.txt"),
+		#sep=(r' +'), 
+		delim_whitespace=True,
+		names=['tag_name', 'tag_id'],
+		dtype={'tag_name':str, 'tag_id':int})
+	dict_id_name = vocab_index["tag_name"].to_dict()
+	dict_name_id = {name: idx for idx, name in dict_id_name.items()}
+	return dict_id_name, dict_name_id
+
 def read_image_dir_and_tags():
 	"""
 	Read:
@@ -60,17 +74,14 @@ def read_image_dir_and_tags():
 	
 	print("Total Data:", len(harrison_data))
 
-	# Create Dictionary mapping bidirection name and id
-	vocab_index = pd.read_csv(os.path.join(FLAGS.harrison_dir, "vocab_index.txt"), sep=(r' +'), names=['tag_name', 'tag_id'])
-	dict_id_name = vocab_index["tag_name"].to_dict()
-	dict_name_id = {name: idx for idx, name in dict_id_name.items()}
+	dict_id_name, dict_name_id = get_tag_mapping()
 
 	#Convert tags into list of vocab index
 	harrison_data["tags"] = harrison_data["tags"].str.strip()
 	harrison_data["tags"] = harrison_data["tags"].str.split(" ")
-	harrison_data["tags"] = [multi_encode([dict_name_id[tag] for tag in tags], 1000)
+	harrison_data["tags"] = [[int(dict_name_id[tag]) for tag in tags]
 							for tags in harrison_data["tags"].values]
-
+	harrison_data["target"] = [multi_encode(row,1000) for row in harrison_data["tags"].values]
 	harrison_data["image"] = [os.path.join(FLAGS.harrison_dir, path) for path in harrison_data.image]
 
 	#Shuffle DataFrame
@@ -100,15 +111,17 @@ def _process_image(filename):
 
 	g = tf.Graph()
 	with g.as_default():
-		sess = tf.Session()
-		img_encoded = tf.placeholder(dtype=tf.string)
-		if _is_png(filename):
-			t_image = tf.image.decode_png(img_encoded, channels=3)
-		else:    
-			t_image = tf.image.decode_jpeg(img_encoded, channels=3)
-		resized_image = tf.image.resize_images(t_image, [299, 299])
-		resized_image = tf.cast(resized_image, tf.uint8)
-		encoded_image = tf.image.encode_jpeg(resized_image, format='rgb', quality=100)
+		tf.logging.set_verbosity(tf.logging.ERROR)
+		sess = tf.Session(config=config)
+		with tf.device('/cpu:0'):
+			img_encoded = tf.placeholder(dtype=tf.string)
+			if _is_png(filename):
+				t_image = tf.image.decode_png(img_encoded, channels=3)
+			else:    
+				t_image = tf.image.decode_jpeg(img_encoded, channels=3)
+			resized_image = tf.image.resize_images(t_image, [299, 299])
+			resized_image = tf.cast(resized_image, tf.uint8)
+			encoded_image = tf.image.encode_jpeg(resized_image, format='rgb', quality=100)
 		
 		sess.run(tf.initialize_all_variables())
 		img = sess.run(resized_image, feed_dict={img_encoded: image_data})
@@ -130,7 +143,7 @@ def _process_image(filename):
 def create_records(harrison_data, filename):
 	tf.reset_default_graph()
 	
-	with tf.Session() as sess:
+	with tf.Session(config=config) as sess:
 		init_op = tf.initialize_all_variables()
 		sess.run(init_op)
 		coord = tf.train.Coordinator()
@@ -142,15 +155,14 @@ def create_records(harrison_data, filename):
 		for idx, row in harrison_data.iterrows():
 			it += 1
 			filename = row['image']
-			labels = row['tags']
 			image_buffer, height, width = _process_image(filename)
 			print("Processing Image #",it,"-", filename)
-			
 			example = tf.train.Example(features=tf.train.Features(feature={
 						'height':_int64_feature(height),
 						'width':_int64_feature(width),
 						'depth':_int64_feature(3),
-						'labels':_int64_feature(labels),
+						'target':_int64_feature(row['target']),
+						'labels':_int64_feature(row['tags']),
 						'image_raw':_bytes_feature(image_buffer)
 					}))
 			writer.write(example.SerializeToString())
@@ -160,7 +172,7 @@ def create_records(harrison_data, filename):
 		coord.join(threads)
 
 if __name__ == '__main__':
-	np.random.seed(0)
+	np.random.seed(42)
 	harrison_train, harrison_test = read_image_dir_and_tags()
 	print("Harrison Train:", harrison_train.shape)
 	print("Harrison Test:", harrison_test.shape)

@@ -12,6 +12,7 @@ def inference(inputs, is_training=True):
 		logits, end_points = inception.inception_v3(inputs,
 						num_classes = 1000,
 						is_training = is_training)
+	logits = tf.nn.sigmoid(logits)
 	return logits
 
 def loss(logits, labels):

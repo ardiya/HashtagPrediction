@@ -16,7 +16,8 @@ def read_and_decode(filename_queue):
 	_, serialized_example = reader.read(filename_queue)
 	features = tf.parse_single_example(serialized_example,
 		features={'image_raw':tf.FixedLenFeature([], tf.string),
-				  'labels':tf.FixedLenFeature([1000], tf.int64),
+				  'target':tf.FixedLenFeature([1000], tf.int64),
+				  'labels':tf.VarLenFeature(tf.int64),
 				  'width':tf.FixedLenFeature([], tf.int64),
 				  'height':tf.FixedLenFeature([], tf.int64)})
 
@@ -32,19 +33,20 @@ def read_and_decode(filename_queue):
 		inception.inception_v3.default_image_size, is_training=False)
 
 	# Convert label from a scalar uint8 tensor to an int32 scalar.
-	label = tf.cast(features['labels'], tf.int32)
+	label = features['labels']
+	target = tf.cast(features['target'], tf.int32)
 
-	return processed_images, label
+	return processed_images, label, target
 
 def inputs(filename, num_epochs=1000):
 	filename_queue = tf.train.string_input_producer([filename],
 			   num_epochs=num_epochs)
-	image, labels = read_and_decode(filename_queue)
-	batch_image, batch_labels = tf.train.batch(
-		[image, labels], batch_size=FLAGS.batch_size)
+	image, labels, target = read_and_decode(filename_queue)
+	batch_image, batch_labels, batch_targets = tf.train.batch(
+		[image, labels, target], batch_size=FLAGS.batch_size)
 	# batch_image, batch_labels = tf.train.shuffle_batch(
 	#     [image, labels], batch_size=FLAGS.batch_size,
 	#     num_threads=4,
 	#     capacity=1000 + 3 * FLAGS.batch_size,
 	#     min_after_dequeue=1000)
-	return batch_image, batch_labels
+	return batch_image, batch_labels, batch_targets

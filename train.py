@@ -10,8 +10,8 @@ slim = tf.contrib.slim
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_epochs', 750, 'Number of epochs to run trainer.')
-flags.DEFINE_integer('batch_size', 100, 'Batch size.')
+flags.DEFINE_integer('num_epochs', 5000, 'Number of epochs to run trainer.')
+flags.DEFINE_integer('batch_size', 64, 'Batch size.')
 flags.DEFINE_string('harrison_dir', '/home/ardiya/HARRISON',
 					'Directory containing Benchmark Dataset(img_placeholder, data_list, and tag_list.')
 flags.DEFINE_string('train_dir', '/home/ardiya/HashtagPrediction',
@@ -46,4 +46,4 @@ if __name__ == '__main__':
 						logdir=os.path.join(FLAGS.train_dir, 'train.log'),
 						init_fn=init_fn,
 						number_of_steps=FLAGS.num_epochs,
-						save_summaries_secs=10)
+						save_summaries_secs=30)
