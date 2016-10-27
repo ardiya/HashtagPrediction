@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import os
-#from matplotlib import pyplot as plt
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -72,8 +71,6 @@ def read_image_dir_and_tags():
 	# remove broken image [25526 instagram_dataset/sun/image_9.jpg,50762 family/image_2411.jpg]
 	harrison_data.drop(harrison_data.index[[25526,50762]], inplace=True)
 	
-	print("Total Data:", len(harrison_data))
-
 	dict_id_name, dict_name_id = get_tag_mapping()
 
 	#Convert tags into list of vocab index
@@ -125,9 +122,6 @@ def _process_image(filename):
 		
 		sess.run(tf.initialize_all_variables())
 		img = sess.run(resized_image, feed_dict={img_encoded: image_data})
-		# print("img shape:", img.shape)
-		# plt.imshow(img)
-		# plt.show()
 		
 		# Check that image converted to RGB
 		assert len(resized_image.get_shape()) == 3

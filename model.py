@@ -26,16 +26,6 @@ def training(losses):
 	train_op = slim.learning.create_train_op(losses, optimizer)
 	return train_op
 
-def metrics(predictions, labels):
-	return {
-		"accuracy": slim.metrics.streaming_accuracy(predictions, labels),
-		"mse": slim.metrics.streaming_mean_absolute_error(predictions, labels),
-		"map@1": slim.metrics.streaming_sparse_average_precision_at_k(predictions, labels, 1),
-		"map@1": slim.metrics.streaming_sparse_average_precision_at_k(predictions, labels, 1),
-		"map@5": slim.metrics.streaming_sparse_average_precision_at_k(predictions, labels, 5),
-		"map@10": slim.metrics.streaming_sparse_average_precision_at_k(predictions, labels, 10)
-	}
-
 def get_init_fn():
 	"""Returns a function run by the chief worker to warm-start the training."""
 	checkpoint_exclude_scopes=["InceptionV3/Logits", "InceptionV3/AuxLogits"]

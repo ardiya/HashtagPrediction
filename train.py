@@ -10,7 +10,7 @@ slim = tf.contrib.slim
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_epochs', 5000, 'Number of epochs to run trainer.')
+flags.DEFINE_integer('num_epochs', 5, 'Number of epochs to run trainer.')
 flags.DEFINE_integer('batch_size', 64, 'Batch size.')
 flags.DEFINE_string('harrison_dir', '/home/ardiya/HARRISON',
 					'Directory containing Benchmark Dataset(img_placeholder, data_list, and tag_list.')
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	with tf.Graph().as_default():
 		tf.logging.set_verbosity(tf.logging.INFO)
 
-		batch_x, batch_y = input.inputs(
+		batch_x, _, batch_y = input.inputs(
 			filename=os.path.join(FLAGS.train_dir, FLAGS.train_file),
 			num_epochs=FLAGS.num_epochs)
 		logits = model.inference(batch_x)
@@ -41,9 +41,12 @@ if __name__ == '__main__':
 								   tf.initialize_local_variables())
 				sess.run(init_op)
 
+				number_of_steps = (57381*FLAGS.num_epochs)//FLAGS.batch_size
+				print("Start training with total: %d steps from %d epoch and %d batch"%(number_of_steps, FLAGS.num_epochs, FLAGS.batch_size))
+
 				final_loss = slim.learning.train(
 						train_op,
 						logdir=os.path.join(FLAGS.train_dir, 'train.log'),
 						init_fn=init_fn,
-						number_of_steps=FLAGS.num_epochs,
+						number_of_steps=number_of_steps,
 						save_summaries_secs=30)
